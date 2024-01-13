@@ -3,7 +3,7 @@ try:
     from opcua.server.user_manager import UserManager
     from time import sleep
     import os
-    from results import generate_random_values
+    from telsonic.results import Results
     import numpy as np
 except ImportError as e:
     print(e)
@@ -73,12 +73,12 @@ weld_bad.set_writable()
 counter_total = result_folder.add_variable(address_space, "CounterTotal", 0, varianttype=ua.VariantType.Int32)
 counter_total.set_writable()
 
-def update_opcua_variables():
-    random_force, random_power, random_distance, ok, bad, count = generate_random_values()
+def update_opcua_variables(results_instance):
+    random_force, random_power, random_distance, ok, bad, count = results_instance.generate_random_results()
 
     power_value = ua.Variant(np.int32(random_power), ua.VariantType.Int32)
     force_value = ua.Variant(np.int32(random_force), ua.VariantType.Int32)
-    distance_value = ua.Variant(np.float32(random_distance), ua.VariantType.Float)
+    distance_value = random_distance
     ok_value = ua.Variant(np.int32(ok), ua.VariantType.Int32)
     bad_value = ua.Variant(np.int32(bad), ua.VariantType.Int32)
     count_value = ua.Variant(np.int32(count), ua.VariantType.Int32)
@@ -90,6 +90,7 @@ def update_opcua_variables():
     weld_bad.set_value(bad_value)
     counter_total.set_value(count_value)
 
+    return random_force, random_power, random_distance, ok, bad, count
 
 """
 OPC-UA-Server Start
@@ -98,10 +99,12 @@ server.start()
 
 if __name__ == "__main__":
     try:
+        results_instance = Results()
         while True:
             cmd = input("Command: ")
             if cmd == "run":
-                update_opcua_variables()
+                power, force, distance, ok, bad, count = update_opcua_variables(results_instance)
+                print(f"Max Power: {power}, Max Force: {force}, Distance Diff: {distance}, Ok: {ok}, Bad: {bad}, Count: {count}")
             elif cmd == "exit":
                 print("Closing connection...")
                 server.stop()
