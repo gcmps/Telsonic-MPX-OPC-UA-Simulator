@@ -70,11 +70,14 @@ weld_ok.set_writable()
 weld_bad = result_folder.add_variable(address_space, "WeldBad", 0, varianttype=ua.VariantType.Int32)
 weld_bad.set_writable()
 
+recipe_name_from_result = result_folder.add_variable(address_space, "RecipeNameFromResult", "")
+recipe_name_from_result.set_writable()
+
 counter_total = result_folder.add_variable(address_space, "CounterTotal", 0, varianttype=ua.VariantType.Int32)
 counter_total.set_writable()
 
 def update_opcua_variables(results_instance):
-    random_force, random_power, random_distance, ok, bad, count = results_instance.generate_random_results()
+    random_force, random_power, random_distance, ok, bad, random_recipe, count = results_instance.generate_random_results()
 
     power_value = ua.Variant(np.int32(random_power), ua.VariantType.Int32)
     force_value = ua.Variant(np.int32(random_force), ua.VariantType.Int32)
@@ -82,6 +85,7 @@ def update_opcua_variables(results_instance):
     ok_value = ua.Variant(np.int32(ok), ua.VariantType.Int32)
     bad_value = ua.Variant(np.int32(bad), ua.VariantType.Int32)
     count_value = ua.Variant(np.int32(count), ua.VariantType.Int32)
+    recipe_value = random_recipe
 
     max_power.set_value(power_value)
     max_force.set_value(force_value)
@@ -89,8 +93,9 @@ def update_opcua_variables(results_instance):
     weld_ok.set_value(ok_value)
     weld_bad.set_value(bad_value)
     counter_total.set_value(count_value)
+    recipe_name_from_result.set_value(recipe_value)
 
-    return random_force, random_power, random_distance, ok, bad, count
+    return random_force, random_power, random_distance, ok, bad, random_recipe, count
 
 """
 OPC-UA-Server Start
@@ -103,8 +108,8 @@ if __name__ == "__main__":
         while True:
             cmd = input("Command: ")
             if cmd == "run":
-                power, force, distance, ok, bad, count = update_opcua_variables(results_instance)
-                print(f"Max Power: {power}, Max Force: {force}, Distance Diff: {distance}, Ok: {ok}, Bad: {bad}, Count: {count}")
+                power, force, distance, ok, bad, recipe, count = update_opcua_variables(results_instance)
+                print(f"Max Power: {power}, Max Force: {force}, Distance Diff: {distance}, Ok: {ok}, Bad: {bad}, Recipe: {recipe}, Count: {count}")
             elif cmd == "exit":
                 print("Closing connection...")
                 server.stop()
